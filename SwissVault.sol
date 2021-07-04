@@ -2,12 +2,13 @@ pragma solidity ^0.8.2;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
-contract Vault {
+contract SwissVault {
+    
     mapping(address => uint) public balances;
     mapping(address => mapping(address => uint)) public allowance;
     uint public totalSupply = 21000000 * 10 ** 18;
     string public name = "SwissVault";
-    string public symbol = "SVAULT";
+    string public symbol = "SVLT";
     uint public decimals = 18;
     uint public lastBTCPrice = 0;
     uint public burnRatePerc = 0;
@@ -35,6 +36,7 @@ contract Vault {
             _;
     }
     
+    // Get the latest BTC price
     function getBTCPrice() public view returns (int) {
         (
             uint80 roundID, 
@@ -46,14 +48,17 @@ contract Vault {
         return price;
     } 
     
+    // Set the last BTC price
     function setLastBTCPrice(uint value) onlyOwner public {
       lastBTCPrice = value;    
     }
     
+    // Set the burn flag
     function setIsBurn(bool value) onlyOwner public {
       isBurn = value;    
     }    
     
+    // Calculate the burn rate based on BTC price
     function calculateBurnRate(uint value) private returns (uint)  {
         if (isBurn == false){
           lastBTCPrice = 0;    
@@ -69,10 +74,13 @@ contract Vault {
         return (value * burnRatePerc) / 100000;
       }    
     
+    
+    // Returns the balance of an address
     function balanceOf(address owners) public view returns(uint){
         return balances[owners];
     }
     
+    // Transfer token to an address
     function transfer(address to, uint value) public returns(bool){
         require(balanceOf(msg.sender) >= value, 'balance too low');
         
@@ -90,6 +98,7 @@ contract Vault {
         return true;
     }
     
+    // Transfer token from an address to another address
     function transferFrom(address from, address to, uint value) public returns(bool){
         require(balanceOf(from) >= value, 'balance too low');
         require(allowance[from][msg.sender] >= value, 'allowance too low');
@@ -108,6 +117,7 @@ contract Vault {
         return true;
     }
     
+    // Approve the transaction
     function approve(address spender, uint value) public returns(bool){
         allowance[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
